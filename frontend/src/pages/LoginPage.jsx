@@ -6,6 +6,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const errs = {};
@@ -26,13 +27,13 @@ export default function LoginPage() {
     setErrors({});
     setLoading(true);
     setTimeout(() => {
-      localStorage.setItem('tf_user', JSON.stringify({ name: 'John Doe', initials: 'JD', email: form.email }));
+      localStorage.setItem('tf_user', JSON.stringify({ name: 'Supun Piyumal', initials: 'SP', email: form.email }));
       navigate('/dashboard');
     }, 800);
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-100 via-purple-50 to-indigo-100">
+    <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-slate-100 via-purple-50 to-indigo-100">
       <div className="w-full max-w-md px-4">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
@@ -41,7 +42,7 @@ export default function LoginPage() {
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span className="text-2xl font-bold text-gray-800">
+          <span className="text-3xl font-bold text-gray-800">
             Task<span className="text-indigo-600">Flow</span>
           </span>
         </div>
@@ -70,13 +71,24 @@ export default function LoginPage() {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                placeholder="••••••••"
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 ${errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  placeholder="••••••••"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 ${errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-gray-400 hover:text-indigo-500 focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
               {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
             </div>
 
@@ -87,18 +99,12 @@ export default function LoginPage() {
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4"/>
-                    <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8H4z"/>
-                  </svg>
                   Signing in...
                 </span>
               ) : 'Sign In'}
             </button>
           </form>
         </div>
-
-        <p className="text-center text-xs text-gray-400 mt-6">© 2026 TaskFlow. All rights reserved.</p>
       </div>
     </div>
   );
