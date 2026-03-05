@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -7,6 +8,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   const validate = () => {
     const errs = {};
@@ -17,7 +19,7 @@ export default function LoginPage() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -25,11 +27,34 @@ export default function LoginPage() {
       return;
     }
     setErrors({});
+    setApiError('');
     setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem('tf_user', JSON.stringify({ name: 'Supun Piyumal', initials: 'SP', email: form.email }));
+
+    try {
+      const data = await authService.login({
+        email: form.email,
+        password: form.password,
+      });
+
+      // Backend returns: { _id, name, email, initials, token }
+      // Store user data with proper format for HeaderSection
+      const user = {
+        name: data.name,
+        email: data.email,
+        initials: data.initials || data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+        token: data.token,
+        id: data._id,
+      };
+      localStorage.setItem('tf_user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(data)); // For API service
+
       navigate('/dashboard');
-    }, 800);
+    } catch (error) {
+      console.error('Login error:', error);
+      setApiError(error.response?.data?.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -91,6 +116,13 @@ export default function LoginPage() {
               </div>
               {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
             </div>
+
+            {/* API Error */}
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600">
+                {apiError}
+              </div>
+            )}
 
             <button
               type="submit"
