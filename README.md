@@ -175,13 +175,6 @@ To add a default test user to the database:
 cd backend
 node seedUser.js
 ```
-
-This creates:
-| Field    | Value                |
-|----------|----------------------|
-| Email    | user@taskflow.com    |
-| Password | user123              |
-
 ---
 
 ## 🔌 API Endpoints
@@ -215,7 +208,6 @@ This creates:
 | Vite | 8.0 | Build Tool |
 | Tailwind CSS | 4.2 | Styling |
 | React Router DOM | 7.13 | Routing |
-| Axios | 1.13 | HTTP Client |
 
 ### Backend
 | Tech | Version | Purpose |
@@ -225,8 +217,6 @@ This creates:
 | MongoDB + Mongoose | 8.0 | Database |
 | JWT | 9.0 | Authentication |
 | bcryptjs | 2.4 | Password Hashing |
-| dotenv | 16.3 | Environment Variables |
-| nodemon | 3.0 | Dev Auto-restart |
 
 ---
 
@@ -238,27 +228,6 @@ This creates:
      └────────────────────────────────────┘
               (click badge to cycle)
 ```
-
----
-
-## 🔒 Authentication Flow
-
-```
-1. User logs in  →  POST /api/auth/login
-2. Backend returns JWT token
-3. Token stored in localStorage
-4. Every API request sends: Authorization: Bearer <token>
-5. Backend verifies token → serves user-specific data
-6. Token expires in 30 days
-```
-
----
-
-## 📸 Screenshots
-
-> *Login Page → Clean, minimal login form with password visibility toggle*
-
-> *Dashboard → Stats cards, filter tabs, task cards with hover actions*
 
 ---
 
