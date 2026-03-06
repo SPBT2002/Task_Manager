@@ -29,7 +29,7 @@ export default function TaskCard({ task, onStatusChange, onEdit, onDelete }) {
   const cycleStatus = () => {
     const idx = STATUS_ORDER.indexOf(task.status);
     const next = STATUS_ORDER[(idx + 1) % STATUS_ORDER.length];
-    onStatusChange(task.id, next);
+    onStatusChange(task._id, next);
   };
 
   return (
@@ -79,7 +79,7 @@ export default function TaskCard({ task, onStatusChange, onEdit, onDelete }) {
               <span className="text-blue-500">🖉</span> Edit
             </button>
             <button
-              onClick={() => onDelete(task.id)}
+              onClick={() => onDelete(task._id)}
               className="flex items-center gap-1 px-2.5 py-1 h-7 rounded-lg border border-red-200 text-red-500 text-xs font-medium bg-white hover:bg-red-50 transition-colors duration-150 shadow-sm"
             >
               <span className="text-red-500 text-base">🗑</span> Delete
