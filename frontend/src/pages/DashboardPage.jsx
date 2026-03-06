@@ -1,42 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import HeaderSection from '../components/HeaderSection';
 import StatsCards from '../components/StatsCards';
 import TaskList from '../components/TaskList';
 import TaskForm from '../components/TaskForm';
-
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    title: 'Design new landing page',
-    description: 'Create wireframes and high-fidelity mockups for the Q3 marketing campaign homepage redesign.',
-    status: 'Pending',
-    createdAt: '2026-03-01T08:00:00Z',
-  },
-  {
-    id: 2,
-    title: 'Fix authentication bug',
-    description: 'Investigate and resolve the OAuth token refresh issue reported in production logs.',
-    status: 'In Progress',
-    createdAt: '2026-03-02T09:00:00Z',
-  },
-  {
-    id: 3,
-    title: 'Write API documentation',
-    description: 'Document all v2 REST endpoints with request/response examples using OpenAPI spec.',
-    status: 'Pending',
-    createdAt: '2026-03-02T11:00:00Z',
-  },
-  {
-    id: 4,
-    title: 'Set up CI/CD pipeline',
-    description: 'Configure GitHub Actions workflows for automated testing and deployment.',
-    status: 'Completed',
-    createdAt: '2026-03-03T10:00:00Z',
-  },
-];
-
-
-let nextId = INITIAL_TASKS.length + 1;
+import taskService from '../services/taskService';
 
 function ConfirmModal({ open, title, onConfirm, onCancel }) {
   if (!open) return null;
@@ -67,10 +34,31 @@ function ConfirmModal({ open, title, onConfirm, onCancel }) {
 }
 
 export default function DashboardPage() {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Fetch tasks on mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await taskService.getTasks();
+      setTasks(data.data || []);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError('Failed to load tasks');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const completedCount = tasks.filter(t => t.status === 'Completed').length;
   const pendingCount = tasks.filter(t => t.status === 'Pending').length;
@@ -85,14 +73,20 @@ export default function DashboardPage() {
     setShowForm(true);
   };
 
-  const handleSave = (formData) => {
-    if (editTask) {
-      setTasks(prev => prev.map(t => t.id === editTask.id ? { ...t, ...formData } : t));
-    } else {
-      setTasks(prev => [
-        ...prev,
-        { id: nextId++, ...formData, createdAt: new Date().toISOString() },
-      ]);
+  const handleSave = async (formData) => {
+    try {
+      if (editTask) {
+        // Update existing task
+        await taskService.updateTask(editTask._id, formData);
+      } else {
+        // Create new task
+        await taskService.createTask(formData);
+      }
+      // Refresh tasks after save
+      await fetchTasks();
+    } catch (err) {
+      console.error('Error saving task:', err);
+      alert('Failed to save task');
     }
   };
 
@@ -100,20 +94,45 @@ export default function DashboardPage() {
     setDeleteId(id);
   };
 
-  const confirmDelete = () => {
-    setTasks(prev => prev.filter(t => t.id !== deleteId));
-    setDeleteId(null);
+  const confirmDelete = async () => {
+    try {
+      await taskService.deleteTask(deleteId);
+      setDeleteId(null);
+      // Refresh tasks after delete
+      await fetchTasks();
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      alert('Failed to delete task');
+    }
   };
 
   const cancelDelete = () => {
     setDeleteId(null);
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await taskService.updateTask(id, { status: newStatus });
+      // Refresh tasks after status change
+      await fetchTasks();
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('Failed to update status');
+    }
   };
 
-  const deleteTask = tasks.find(t => t.id === deleteId);
+  const deleteTask = tasks.find(t => t._id === deleteId);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-slate-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+          <p className="text-gray-600 font-medium">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-100 via-purple-50 to-indigo-100">
@@ -133,6 +152,14 @@ export default function DashboardPage() {
             New Task
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-red-500">⚠️</span>
+            <p className="text-sm text-red-600 font-medium">{error}</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="mb-6">
